@@ -227,7 +227,7 @@
         <svg class="timer-icon" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z"/>
         </svg>
-        <span id="countdown">5:00</span>
+        <span id="countdown">10:00</span>
       </div>
     </div>
 
@@ -362,8 +362,9 @@
       try {
         // 呼叫 GAS Web App API
         const response = await fetch(
-          'https://script.google.com/macros/s/AKfycbyFPJpgbA9UiShmtmga5LD0ve-aZkfrHoh_LGcR5pR6YY_xCJlwryb2mk3F_tnnS93FbA/exec' + token
-        );
+  'https://script.google.com/macros/s/AKfycbyFPJpgbA9UiShmtmga5LD0ve-aZkfrHoh_LGcR5pR6YY_xCJlwryb2mk3F_tnnS93FbA/exec?action=getSensitiveData&token=' + token
+  // ✅ 加入 ?action=getSensitiveData&token=
+);
 
         const result = await response.json();
 
