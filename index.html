@@ -362,7 +362,7 @@
       try {
         // 呼叫 GAS Web App API
         const response = await fetch(
-          'YOUR_GAS_WEB_APP_URL?action=getSensitiveData&token=' + token
+          'https://script.google.com/macros/s/AKfycbyFPJpgbA9UiShmtmga5LD0ve-aZkfrHoh_LGcR5pR6YY_xCJlwryb2mk3F_tnnS93FbA/exec' + token
         );
 
         const result = await response.json();
@@ -464,7 +464,7 @@
       try {
         const profile = await liff.getProfile();
         
-        await fetch('YOUR_GAS_WEB_APP_URL', {
+        await fetch('https://script.google.com/macros/s/AKfycbyFPJpgbA9UiShmtmga5LD0ve-aZkfrHoh_LGcR5pR6YY_xCJlwryb2mk3F_tnnS93FbA/exec', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
