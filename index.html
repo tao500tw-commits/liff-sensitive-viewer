@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>個案詳細資料</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 480px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #06C755 0%, #04a344 100%);
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .timer {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 8px 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .timer-icon {
+      width: 16px;
+      height: 16px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .content {
+      padding: 24px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: #8892a4;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e4e8ef;
+      border-top-color: #06C755;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error {
+      background: #fff4e0;
+      border: 2px solid #f08c00;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      color: #744210;
+    }
+
+    .error-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .expired {
+      background: #ffe0e0;
+      border: 2px solid #e03131;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      color: #7d1212;
+    }
+
+    .data-section {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #8892a4;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 16px;
+      background: linear-gradient(135deg, #06C755, #04a344);
+      border-radius: 2px;
+    }
+
+    .data-grid {
+      background: #f5f7fa;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .data-item {
+      display: flex;
+      padding: 12px 0;
+      border-bottom: 1px solid #e4e8ef;
+    }
+
+    .data-item:last-child {
+      border-bottom: none;
+    }
+
+    .data-label {
+      font-size: 13px;
+      color: #8892a4;
+      min-width: 80px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .data-value {
+      font-size: 15px;
+      color: #1a1f2e;
+      font-weight: 500;
+      flex: 1;
+      word-break: break-all;
+    }
+
+    .sensitive-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #fff4e0;
+      color: #744210;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .warning-box {
+      background: #fff4e0;
+      border-left: 4px solid #f08c00;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 24px;
+      font-size: 13px;
+      color: #744210;
+      line-height: 1.6;
+    }
+
+    .warning-box strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .btn-close {
+      width: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 24px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-close:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔒 個案詳細資料</h1>
+      <div class="timer" id="timer">
+        <svg class="timer-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z"/>
+        </svg>
+        <span id="countdown">5:00</span>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Loading State -->
+      <div class="loading" id="loadingState">
+        <div class="spinner"></div>
+        <p>正在載入資料...</p>
+      </div>
+
+      <!-- Error State -->
+      <div class="error" id="errorState" style="display: none;">
+        <div class="error-icon">⚠️</div>
+        <strong>載入失敗</strong>
+        <p id="errorMessage">無法載入資料，請稍後再試。</p>
+      </div>
+
+      <!-- Expired State -->
+      <div class="expired" id="expiredState" style="display: none;">
+        <div class="error-icon">⏰</div>
+        <strong>連結已過期</strong>
+        <p>此連結已超過 5 分鐘時效限制。<br>請返回 LINE 重新查詢。</p>
+      </div>
+
+      <!-- Data Display -->
+      <div id="dataDisplay" style="display: none;">
+        <!-- 基本資料 -->
+        <div class="data-section">
+          <div class="section-title">基本資料</div>
+          <div class="data-grid">
+            <div class="data-item">
+              <div class="data-label">👤 姓名</div>
+              <div class="data-value" id="name">-</div>
+            </div>
+            <div class="data-item">
+              <div class="data-label">🏘️ 村里</div>
+              <div class="data-value" id="village">-</div>
+            </div>
+            <div class="data-item">
+              <div class="data-label">👨‍💼 督導</div>
+              <div class="data-value" id="supervisor">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 敏感資料 -->
+        <div class="data-section">
+          <div class="section-title">
+            敏感資料
+            <span class="sensitive-badge">🔒 受保護</span>
+          </div>
+          <div class="data-grid">
+            <div class="data-item">
+              <div class="data-label">🪪 身分證</div>
+              <div class="data-value" id="idNo">-</div>
+            </div>
+            <div class="data-item">
+              <div class="data-label">📞 電話</div>
+              <div class="data-value" id="phone">-</div>
+            </div>
+            <div class="data-item">
+              <div class="data-label">📍 地址</div>
+              <div class="data-value" id="address">-</div>
+            </div>
+            <div class="data-item">
+              <div class="data-label">📋 案號</div>
+              <div class="data-value" id="caseNo">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 備註 -->
+        <div class="data-section" id="noteSection" style="display: none;">
+          <div class="section-title">備註</div>
+          <div class="data-grid">
+            <div class="data-item">
+              <div class="data-value" id="note" style="white-space: pre-wrap;">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 警告訊息 -->
+        <div class="warning-box">
+          <strong>⚠️ 個資保護提醒</strong>
+          此頁面顯示的個人資料受《個人資料保護法》保護。請勿截圖、拍照或以任何方式外流。
+        </div>
+
+        <button class="btn-close" onclick="liff.closeWindow()">關閉視窗</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════
+    // LIFF 初始化
+    // ═══════════════════════════════════════
+    const liffId = 'YOUR_LIFF_ID'; // ⭐ 替換為您的 LIFF ID
+    let countdownInterval;
+    let expiryTime;
+
+    async function initializeLiff() {
+      try {
+        await liff.init({ liffId });
+
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        // 取得 URL 參數中的 token
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        if (!token) {
+          showError('缺少驗證 Token');
+          return;
+        }
+
+        // 載入資料
+        await loadCaseData(token);
+
+      } catch (error) {
+        console.error('LIFF 初始化失敗:', error);
+        showError('系統初始化失敗：' + error.message);
+      }
+    }
+
+    // ═══════════════════════════════════════
+    // 載入個案資料
+    // ═══════════════════════════════════════
+    async function loadCaseData(token) {
+      try {
+        // 呼叫 GAS Web App API
+        const response = await fetch(
+          'YOUR_GAS_WEB_APP_URL?action=getSensitiveData&token=' + token
+        );
+
+        const result = await response.json();
+
+        if (result.status === 'expired') {
+          showExpired();
+          return;
+        }
+
+        if (result.status === 'error') {
+          showError(result.message);
+          return;
+        }
+
+        // 顯示資料
+        displayData(result.data);
+
+        // 啟動倒數計時
+        startCountdown(result.expiryTime);
+
+        // 記錄存取日誌
+        logAccess(token, result.data.name);
+
+      } catch (error) {
+        console.error('載入資料失敗:', error);
+        showError('載入資料時發生錯誤');
+      }
+    }
+
+    // ═══════════════════════════════════════
+    // 顯示資料
+    // ═══════════════════════════════════════
+    function displayData(data) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('dataDisplay').style.display = 'block';
+
+      // 基本資料
+      document.getElementById('name').textContent = data.name || '-';
+      document.getElementById('village').textContent = data.village || '-';
+      document.getElementById('supervisor').textContent = data.supervisor || '-';
+
+      // 敏感資料（完整顯示）
+      document.getElementById('idNo').textContent = data.idNo || '-';
+      document.getElementById('phone').textContent = data.phone || '-';
+      document.getElementById('address').textContent = data.address || '-';
+      document.getElementById('caseNo').textContent = data.caseNo || '-';
+
+      // 備註
+      if (data.note) {
+        document.getElementById('noteSection').style.display = 'block';
+        document.getElementById('note').textContent = data.note;
+      }
+    }
+
+    // ═══════════════════════════════════════
+    // 倒數計時
+    // ═══════════════════════════════════════
+    function startCountdown(expiryTimestamp) {
+      expiryTime = expiryTimestamp;
+
+      countdownInterval = setInterval(() => {
+        const now = Date.now();
+        const remaining = expiryTime - now;
+
+        if (remaining <= 0) {
+          clearInterval(countdownInterval);
+          showExpired();
+          return;
+        }
+
+        const minutes = Math.floor(remaining / 60000);
+        const seconds = Math.floor((remaining % 60000) / 1000);
+        document.getElementById('countdown').textContent = 
+          `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+      }, 1000);
+    }
+
+    // ═══════════════════════════════════════
+    // 顯示錯誤
+    // ═══════════════════════════════════════
+    function showError(message) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'block';
+      document.getElementById('errorMessage').textContent = message;
+    }
+
+    function showExpired() {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('dataDisplay').style.display = 'none';
+      document.getElementById('expiredState').style.display = 'block';
+      clearInterval(countdownInterval);
+    }
+
+    // ═══════════════════════════════════════
+    // 存取日誌（傳送到後端）
+    // ═══════════════════════════════════════
+    async function logAccess(token, caseName) {
+      try {
+        const profile = await liff.getProfile();
+        
+        await fetch('YOUR_GAS_WEB_APP_URL', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'logSensitiveAccess',
+            token: token,
+            userId: profile.userId,
+            userName: profile.displayName,
+            caseName: caseName,
+            timestamp: Date.now()
+          })
+        });
+      } catch (error) {
+        console.error('記錄存取日誌失敗:', error);
+      }
+    }
+
+    // ═══════════════════════════════════════
+    // 防止截圖（iOS/Android 部分支援）
+    // ═══════════════════════════════════════
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        // 使用者切換到其他應用（可能在截圖）
+        console.warn('使用者離開頁面');
+      }
+    });
+
+    // 啟動
+    initializeLiff();
+  </script>
+</body>
+</html>
