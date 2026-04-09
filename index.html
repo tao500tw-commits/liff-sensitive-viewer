@@ -329,32 +329,30 @@
     let expiryTime;
 
     async function initializeLiff() {
-      try {
-        await liff.init({ liffId });
+  try {
+    // ✅ 在 liff.init() 之前先取得 token，避免被清空
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
 
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
+    await liff.init({ liffId });
 
-        // 取得 URL 參數中的 token
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-
-        if (!token) {
-          showError('缺少驗證 Token');
-          return;
-        }
-
-        // 載入資料
-        await loadCaseData(token);
-
-      } catch (error) {
-        console.error('LIFF 初始化失敗:', error);
-        showError('系統初始化失敗：' + error.message);
-      }
+    if (!liff.isLoggedIn()) {
+      liff.login({ redirectUri: window.location.href });
+      return;
     }
 
+    if (!token) {
+      showError('缺少驗證 Token');
+      return;
+    }
+
+    await loadCaseData(token);
+
+  } catch (error) {
+    console.error('LIFF 初始化失敗:', error);
+    showError('系統初始化失敗：' + error.message);
+  }
+}
     // ═══════════════════════════════════════
     // 載入個案資料
     // ═══════════════════════════════════════
